@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Floor Is Lava</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍎</text></svg>" />
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <div id="loading">
+    <h1>THE FLOOR IS <span class="lava">LAVA</span></h1>
+    <div class="bar"><div id="load-bar"></div></div>
+    <p id="load-text">Heating up the lava…</p>
+  </div>
+
+  <div id="hud">
+    <div class="tl panel">
+      <div class="label">Score</div><div id="score" class="big">0</div>
+      <div class="row"><span>🍎</span><span id="apples">0 / 0</span></div>
+      <div class="row dim">Best <span id="best">0</span></div>
+    </div>
+    <div class="tc">
+      <div id="round">Round 1</div>
+      <div id="timer">0:00</div>
+    </div>
+    <div class="tr panel">
+      <div id="hearts"></div>
+      <button id="btn-mute" title="Mute (M)">🔊</button>
+    </div>
+    <div id="compass" class="panel"><div id="compass-arrow"><svg viewBox="0 0 24 24" width="34" height="34"><path d="M12 2 20 21 12 16.5 4 21z" fill="#ffd27a" stroke="#7a2a08" stroke-width="1.2" stroke-linejoin="round"/></svg></div><div id="compass-dist">0 m</div><small>nearest 🍎</small></div>
+    <div id="crouch-ind">CROUCHED · edge guard on</div>
+    <div id="toast"></div>
+  </div>
+
+  <section id="menu" class="screen">
+    <div class="card">
+      <h1>THE FLOOR IS <span class="lava">LAVA</span></h1>
+      <p class="tag">Hop across the stepping stones, grab every apple, and keep your feet off the molten floor.</p>
+      <div class="controls">
+        <div><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>Move</span></div>
+        <div><kbd>Mouse</kbd><span>Look / orbit camera</span></div>
+        <div><kbd>Space</kbd><span>Jump</span></div>
+        <div><kbd>Shift</kbd><span>Sprint (longer jumps)</span></div>
+        <div><kbd>Ctrl</kbd><span>Hold to crouch: slow, and you can’t walk off edges</span></div>
+        <div><kbd>C</kbd><span>Toggle crouch</span></div>
+        <div><kbd>Q</kbd><span>Dodge roll</span></div>
+        <div><kbd>E</kbd><span>Wave</span></div>
+        <div><kbd>Wheel</kbd><span>Zoom camera</span></div>
+        <div><kbd>M</kbd><span>Mute</span> <kbd>Esc</kbd><span>Pause</span></div>
+      </div>
+      <div class="legend">
+        <span><i class="sw static"></i>Rock: safe</span>
+        <span><i class="sw crumble"></i>Glowing red rock: crumbles shortly after you land</span>
+        <span><i class="sw moving"></i>Blue rim: moving, carries a golden apple (+50)</span>
+      </div>
+      <label class="opt"><input type="checkbox" id="opt-fullscreen" checked /> Play fullscreen (recommended: in Chrome/Edge this lets <kbd>Ctrl</kbd>+<kbd>W</kbd> crouch-walk instead of closing the tab)</label>
+      <button id="btn-play" class="primary">Play</button>
+      <p class="fine">Tip: outside fullscreen, use <kbd>C</kbd> to crouch-walk forward. Ctrl+W would close the tab.</p>
+    </div>
+  </section>
+
+  <section id="pause" class="screen">
+    <div class="card small">
+      <h2>Paused</h2>
+      <button id="btn-resume" class="primary">Resume</button>
+    </div>
+  </section>
+
+  <section id="clear" class="screen">
+    <div class="card small">
+      <h2>Round clear! 🍎</h2>
+      <p id="clear-stats"></p>
+      <p class="fine">The next round has wider gaps, more crumbling rock, and more moving platforms.</p>
+      <button id="btn-next" class="primary">Next round</button>
+    </div>
+  </section>
+
+  <section id="over" class="screen">
+    <div class="card small">
+      <h2>Toasted 🔥</h2>
+      <p id="over-stats"></p>
+      <button id="btn-again" class="primary">Play again</button>
+    </div>
+  </section>
+
+  <footer id="credits">Mixamo animations · Apple, rock texture &amp; sky HDRI: Poly Haven (CC0) · Three.js</footer>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

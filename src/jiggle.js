@@ -13,12 +13,12 @@ import * as THREE from 'three';
  */
 const JIGGLE_AMP = 0.03;          // must match tools/rig.py
 const FREQ = 4.2;                 // Hz: how fast it wobbles
-const ZETA = 0.13;                // damping ratio: lower = wobbles longer
+const ZETA = 0.85;                // damping ratio: lower = wobbles longer
 const K = (2 * Math.PI * FREQ) ** 2;
 const C = 2 * ZETA * 2 * Math.PI * FREQ;
 const MAX_ACCEL = 70;             // ignore teleports / respawns
 const MAX_INFLUENCE = 1.6;
-const ACCEL_GAIN = 0.26;          // overall strength
+const ACCEL_GAIN = 0.38;          // overall strength
 const THIGH_T = 0.15;             // sample point: fraction of the way from hip joint to knee
 const WARMUP = 0.5;               // seconds after a reset before physics kicks in
 

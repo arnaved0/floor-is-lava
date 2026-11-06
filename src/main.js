@@ -16,6 +16,7 @@ import { glowTexture } from './util.js';
 
 const $ = (id) => document.getElementById(id);
 const BASE = import.meta.env.BASE_URL;
+const V = `?v=${typeof __BUILD_ID__ !== 'undefined' ? __BUILD_ID__ : 'dev'}`;
 
 /* ------------------------------------------------------------------ renderer */
 const canvas = $('game');
@@ -49,14 +50,14 @@ const manager = new THREE.LoadingManager();
 manager.onProgress = (_url, done, total) => { $('load-bar').style.width = `${(done / total) * 100}%`; };
 const gltfLoader = new GLTFLoader(manager).setMeshoptDecoder(MeshoptDecoder);
 const texLoader = new THREE.TextureLoader(manager);
-const loadGLTF = (u) => new Promise((res, rej) => gltfLoader.load(BASE + u, res, undefined, rej));
-const loadTex = (u, srgb) => new Promise((res, rej) => texLoader.load(BASE + u, (t) => {
+const loadGLTF = (u) => new Promise((res, rej) => gltfLoader.load(BASE + u + V, res, undefined, rej));
+const loadTex = (u, srgb) => new Promise((res, rej) => texLoader.load(BASE + u + V, (t) => {
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
   t.anisotropy = 8;
   if (srgb) t.colorSpace = THREE.SRGBColorSpace;
   res(t);
 }, undefined, rej));
-const loadHDR = (u) => new Promise((res, rej) => new HDRLoader(manager).load(BASE + u, res, undefined, rej));
+const loadHDR = (u) => new Promise((res, rej) => new HDRLoader(manager).load(BASE + u + V, res, undefined, rej));
 
 const [playerGltf, appleGltf, rockMap, rockNormal, rockRough, sky] = await Promise.all([
   loadGLTF('models/player.glb'),

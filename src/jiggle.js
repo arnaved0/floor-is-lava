@@ -54,6 +54,7 @@ export class GluteJiggle {
     this.springX = new Spring(); this.springY = new Spring();
     this._a = new THREE.Vector3(); this._b = new THREE.Vector3(); this._inv = new THREE.Quaternion();
     this.enabled = this.morphs.length > 0;
+    if (!this.enabled) console.warn('[jiggle] player.glb has no jiggleL/R/X/Y morph targets: jiggle disabled (stale cached model?)');
     this.warm = 0;
   }
 

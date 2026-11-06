@@ -11,7 +11,7 @@ import { Input } from './input.js';
 import { Sfx } from './audio.js';
 import { ThirdPersonCamera } from './camera.js';
 import { createEnvironment, buildLevel, addLavaGlow } from './world.js';
-import { Player } from './player.js';
+import { Player, GLUTE_PER_APPLE, GLUTE_PER_GOLDEN } from './player.js';
 import { glowTexture } from './util.js';
 
 const $ = (id) => document.getElementById(id);
@@ -157,6 +157,7 @@ function startRound(round) {
 
 function newGame() {
   game.score = 0; game.lives = 3;
+  player.resetGlutes();
   startRound(1);
 }
 
@@ -168,6 +169,7 @@ function updateHud() {
   const heart = '<svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-10-9.3C.3 8.4 2.2 4 6.3 4c2.3 0 3.8 1.3 5.7 3.4C13.9 5.3 15.4 4 17.7 4 21.8 4 23.7 8.4 22 11.7 19.5 16.4 12 21 12 21z"/></svg>';
   $('hearts').innerHTML = Array.from({ length: 3 }, (_, i) => `<span class="${i < game.lives ? 'on' : ''}">${heart}</span>`).join('');
   $('best').textContent = game.best;
+  $('glutes').textContent = `+${Math.round(player.gluteTarget * 7.5)} cm`;
 }
 
 let toastTimer;
@@ -330,6 +332,7 @@ function frame(ts) {
           sfx.pickup(golden);
           burst(a.position, golden);
           popup(`+${pts}`, a.position, golden ? 'gold' : '');
+          player.growGlutes(golden ? GLUTE_PER_GOLDEN : GLUTE_PER_APPLE);
           level.group.remove(a);
           level.apples.splice(i, 1);
           updateHud();

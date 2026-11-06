@@ -9,6 +9,9 @@ const CROUCH_MARGIN = 0.05;  // crouching never walks further than this past an 
 const GRAVITY = 26;
 const JUMP_V = 9.4;
 const SPEEDS = { crouch: 1.9, run: 5.4, sprint: 8.2, roll: 7.5 };
+export const GLUTE_PER_APPLE = 0.06;  // morph influence per apple (1.0 ≈ 7.5 cm of extra glute)
+export const GLUTE_PER_GOLDEN = 0.2;
+const GLUTE_MAX = 3.0;
 const CLIP_SPEED = { walk: 1.5, run: 4.6, sprint: 7.0, crouchWalk: 1.3 };
 
 export class Player {
@@ -56,6 +59,14 @@ export class Player {
     this.current = null;
     this.play('idle', 0);
 
+    // --- glute growth (morph target baked in tools/rig.py)
+    this.gluteMorphs = [];
+    this.model.traverse((o) => {
+      const i = o.morphTargetDictionary?.glutes;
+      if (i !== undefined) this.gluteMorphs.push([o, i]);
+    });
+    this.glute = 0; this.gluteTarget = 0; this.gluteVel = 0;
+
     // --- physics state
     this.pos = new THREE.Vector3();
     this.vel = new THREE.Vector3();
@@ -101,6 +112,27 @@ export class Player {
     if (this.current) this.actions[this.current].fadeOut(fade);
     this.current = name;
     return next;
+  }
+
+  /** Each apple adds a little; the spring gives it a jiggly "boing" as it grows. */
+  growGlutes(amount) {
+    this.gluteTarget = Math.min(this.gluteTarget + amount, GLUTE_MAX);
+    this.gluteVel += 6 * amount;
+  }
+
+  resetGlutes() { this.glute = this.gluteTarget = this.gluteVel = 0; this.applyGlutes(); }
+
+  applyGlutes() {
+    for (const [o, i] of this.gluteMorphs) o.morphTargetInfluences[i] = Math.max(0, this.glute);
+  }
+
+  updateGlutes(dt, hs) {
+    // spring toward the target; running and landing add a little bounce
+    const acc = (this.gluteTarget - this.glute) * 140 - this.gluteVel * 9;
+    this.gluteVel += acc * dt;
+    if (this.onGround && hs > 3) this.gluteVel += Math.sin(performance.now() * 0.025) * 0.6 * this.gluteTarget * dt;
+    this.glute += this.gluteVel * dt;
+    this.applyGlutes();
   }
 
   setFlash(k) {
@@ -231,6 +263,7 @@ export class Player {
         sfx.land(hard);
         if (hard && Math.hypot(this.vel.x, this.vel.z) < 1) this.landTimer = 0.42;
         if (hard) cam.shake = 0.15;
+        this.gluteVel -= Math.min(4, this.airTime * 4) * this.gluteTarget; // landing wobble
       }
       this.onGround = true;
       this.ground = support;
@@ -275,6 +308,7 @@ export class Player {
 
     this.animate(dt, hs);
     this.mixer.update(dt);
+    this.updateGlutes(dt, hs);
     return event;
   }
 

@@ -144,6 +144,44 @@ bpy.data.objects.remove(fit, do_unlink=True)
 mesh.parent = rig
 am = mesh.modifiers.new("Armature", 'ARMATURE'); am.object = rig
 
+# ---------------------------------------------------------------- 5b. "glutes" blend shape
+# Mesh is in the Mixamo T-pose here: Z up, character faces -Y, so the back is +Y.
+# Each buttock is a soft Gaussian blob pushed backwards/outwards along the surface normal.
+GLUTE_AMP = 0.075          # metres of push at influence 1.0
+up_leg = {s: rig.data.bones[P + s + "UpLeg"].head_local for s in ("Left", "Right")}
+hips_z = rig.data.bones[P + "Hips"].head_local.z
+me = mesh.data
+me.calc_normals_split() if hasattr(me, "calc_normals_split") else None
+vs = me.vertices
+back_y = max(v.co.y for v in vs if abs(v.co.z - (hips_z - 0.1)) < 0.04 and abs(v.co.x) < 0.15)
+centres = [Vector((up_leg[s].x * 0.95, back_y - 0.06, hips_z - 0.16)) for s in ("Left", "Right")]
+print("glute centres", [tuple(round(c_, 3) for c_ in c) for c in centres], "back_y", round(back_y, 3))
+mesh.shape_key_add(name="Basis", from_mix=False)
+sk = mesh.shape_key_add(name="glutes", from_mix=False)
+SX, SY, SZ = 0.09, 0.1, 0.09   # blob radii (x across, y depth, z height)
+moved = 0
+for v in vs:
+    n = v.normal
+    if n.y < 0.05 or v.co.y < centres[0].y - 0.06:
+        continue
+    w = 0.0
+    for c in centres:
+        d = v.co - c
+        w = max(w, math.exp(-((d.x / SX) ** 2 + (d.y / SY) ** 2 + (d.z / SZ) ** 2)))
+    if w < 0.01:
+        continue
+    facing = min(1.0, n.y * 1.4)              # strongest where the surface faces backwards
+    dirv = (n + Vector((0.3 if v.co.x > 0 else -0.3, 0.8, -0.1))).normalized()
+    sk.data[v.index].co = v.co + dirv * GLUTE_AMP * w * facing
+    moved += 1
+print("glute verts moved", moved)
+if "--glutes" in sys.argv:
+    sk.value = 1.0
+    render_views("glutes_on", views=("side", "back", "q"), color_type='TEXTURE')
+    sk.value = 0.0
+    render_views("glutes_off", views=("side", "back"), color_type='TEXTURE')
+    sys.exit(0)
+
 # ---------------------------------------------------------------- 6. animations
 def fcurves_of(act):
     out = []

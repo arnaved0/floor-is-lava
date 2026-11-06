@@ -13,7 +13,7 @@ import * as THREE from 'three';
  */
 const JIGGLE_AMP = 0.03;          // must match tools/rig.py
 const FREQ = 4.2;                 // Hz: how fast it wobbles
-const ZETA = 0.85;                // damping ratio: lower = wobbles longer
+const ZETA = 0.07;                // damping ratio: lower = wobbles longer
 const K = (2 * Math.PI * FREQ) ** 2;
 const C = 2 * ZETA * 2 * Math.PI * FREQ;
 const MAX_ACCEL = 70;             // ignore teleports / respawns

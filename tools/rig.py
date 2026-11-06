@@ -184,6 +184,41 @@ for v in vs:
     sk.data[v.index].co = v.co + dirv * GLUTE_AMP * w_tot * front
     moved += 1
 print("glute verts moved", moved)
+
+# ---------------------------------------------------------------- 5c. jiggle blend shapes
+# Small rigid-ish translations of the glute region, driven at runtime by spring physics.
+# jiggleL / jiggleR: that cheek moves up (+Z). jiggleX: both shift sideways (+X).
+# jiggleY: both shift backwards (+Y). 1.0 = JIGGLE_AMP metres at the centre of a cheek.
+JIGGLE_AMP = 0.03
+JX, JY, JZ = 0.12, 0.13, 0.12
+def cheek_w(co, c):
+    d = co - c
+    return math.exp(-((d.x / JX) ** 2 + (d.y / JY) ** 2 + (d.z / JZ) ** 2))
+jig = {name: mesh.shape_key_add(name=name, from_mix=False) for name in ("jiggleL", "jiggleR", "jiggleX", "jiggleY")}
+for k in jig.values():
+    k.slider_min = -5.0; k.slider_max = 5.0
+for v in vs:
+    if v.co.y < centres[0].y - 0.13:
+        continue
+    front = min(1.0, max(0.0, (v.co.y - (centres[0].y - 0.13)) / 0.1))
+    wl = cheek_w(v.co, centres[0]) * front
+    wr = cheek_w(v.co, centres[1]) * front
+    if max(wl, wr) < 0.01:
+        continue
+    wb = max(wl, wr)
+    i = v.index
+    jig["jiggleL"].data[i].co = v.co + Vector((0, 0, JIGGLE_AMP * wl))
+    jig["jiggleR"].data[i].co = v.co + Vector((0, 0, JIGGLE_AMP * wr))
+    jig["jiggleX"].data[i].co = v.co + Vector((JIGGLE_AMP * wb, 0, 0))
+    jig["jiggleY"].data[i].co = v.co + Vector((0, JIGGLE_AMP * wb, 0))
+print("jiggle shapes", list(jig))
+
+if "--jiggle" in sys.argv:
+    sk.value = 1.5
+    for name, val in (("jiggleL", 2.0), ("jiggleR", -2.0)):
+        jig[name].value = val
+    render_views("jiggle", views=("back", "side"), color_type='TEXTURE')
+    sys.exit(0)
 if "--glutes" in sys.argv:
     for val in (0.0, 1.0, 3.0):
         sk.value = val

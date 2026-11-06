@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { clamp, damp, angleLerp } from './util.js';
 import { LAVA_Y } from './world.js';
+import { GluteJiggle } from './jiggle.js';
 
 const RADIUS = 0.32;
 const HEIGHT = 1.75;
@@ -68,6 +69,7 @@ export class Player {
       if (i !== undefined) this.gluteMorphs.push([o, i]);
     });
     this.glute = 0; this.gluteTarget = 0; this.gluteVel = 0;
+    this.jiggle = new GluteJiggle(this.model, this.root);
 
     // --- physics state
     this.pos = new THREE.Vector3();
@@ -98,6 +100,7 @@ export class Player {
     this.lastSafe = plat;
     this.setFlash(0);
     this.root.visible = true;
+    this.jiggle?.reset();
   }
 
   play(name, fade = 0.18, { once = false, timeScale = 1, at = 0 } = {}) {
@@ -128,13 +131,14 @@ export class Player {
     for (const [o, i] of this.gluteMorphs) o.morphTargetInfluences[i] = Math.max(0, this.glute);
   }
 
-  updateGlutes(dt, hs) {
-    // spring toward the target; running and landing add a little bounce
+  updateGlutes(dt) {
+    // growth: spring toward the target size (gives the "boing" when an apple is eaten)
     const acc = (this.gluteTarget - this.glute) * 140 - this.gluteVel * 9;
     this.gluteVel += acc * dt;
-    if (this.onGround && hs > 3) this.gluteVel += Math.sin(performance.now() * 0.025) * 0.6 * this.gluteTarget * dt;
     this.glute += this.gluteVel * dt;
     this.applyGlutes();
+    // jiggle: physics driven by the animated skeleton
+    this.jiggle.update(dt, Math.max(0, this.glute));
   }
 
   setFlash(k) {
@@ -265,7 +269,7 @@ export class Player {
         sfx.land(hard);
         if (hard && Math.hypot(this.vel.x, this.vel.z) < 1) this.landTimer = 0.42;
         if (hard) cam.shake = 0.15;
-        this.gluteVel -= Math.min(4, this.airTime * 4) * this.gluteTarget; // landing wobble
+        this.jiggle.thump(Math.min(1.2, 0.25 + this.airTime * 1.2)); // landing slosh
       }
       this.onGround = true;
       this.ground = support;
@@ -310,7 +314,7 @@ export class Player {
 
     this.animate(dt, hs);
     this.mixer.update(dt);
-    this.updateGlutes(dt, hs);
+    this.updateGlutes(dt);
     return event;
   }
 

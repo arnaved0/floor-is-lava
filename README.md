@@ -33,7 +33,7 @@ npm run build    # static build in dist/
 
 - Touching lava costs a life (3 per game). You respawn on the last safe rock you stood on.
 - 🍎 Apple = 10 points. Golden apple = 50 points. Golden apples sit on moving platforms (blue rim) and on the tallest pillars.
-- 🍑 Every apple grows your character's glutes a little: about 4.5 cm per apple and 15 cm per golden apple, up to +22 cm. The growth has a springy wobble, and it resets when you start a new game, not between rounds. It works through a `glutes` blend shape (morph target) baked into `player.glb` by `tools/rig.py`. Tune it with `GLUTE_PER_APPLE` / `GLUTE_PER_GOLDEN` in `src/player.js`.
+- 🍑 Every apple makes your character's glutes inflate a little, round in every direction like a balloon: about 0.7 cm per apple and 2.4 cm per golden apple, up to +24 cm after about 33 apples. The growth has a springy wobble, and it resets when you start a new game, not between rounds. It works through a `glutes` blend shape (morph target) baked into `player.glb` by `tools/rig.py`. Tune it with `GLUTE_PER_APPLE` / `GLUTE_PER_GOLDEN` in `src/player.js`.
 - Red, glowing rock starts shaking when you land on it, sinks into the lava, and comes back after a few seconds.
 - Collect every apple to clear the round. You get a bonus for time and remaining lives. Each round gets a new random layout with wider gaps, more crumbling rock and more moving platforms.
 - Your best score is saved in the browser (localStorage).

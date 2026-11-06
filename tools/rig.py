@@ -147,7 +147,7 @@ am = mesh.modifiers.new("Armature", 'ARMATURE'); am.object = rig
 # ---------------------------------------------------------------- 5b. "glutes" blend shape
 # Mesh is in the Mixamo T-pose here: Z up, character faces -Y, so the back is +Y.
 # Each buttock is a soft Gaussian blob pushed backwards/outwards along the surface normal.
-GLUTE_AMP = 0.075          # metres of push at influence 1.0
+GLUTE_AMP = 0.08           # metres of push at influence 1.0 (game may drive it past 1)
 up_leg = {s: rig.data.bones[P + s + "UpLeg"].head_local for s in ("Left", "Right")}
 hips_z = rig.data.bones[P + "Hips"].head_local.z
 me = mesh.data
@@ -158,28 +158,36 @@ centres = [Vector((up_leg[s].x * 0.95, back_y - 0.06, hips_z - 0.16)) for s in (
 print("glute centres", [tuple(round(c_, 3) for c_ in c) for c in centres], "back_y", round(back_y, 3))
 mesh.shape_key_add(name="Basis", from_mix=False)
 sk = mesh.shape_key_add(name="glutes", from_mix=False)
-SX, SY, SZ = 0.09, 0.1, 0.09   # blob radii (x across, y depth, z height)
+sk.slider_max = 5.0   # the game drives this past 1.0
+# Balloon-style inflation: every vertex near a buttock moves radially away from that
+# buttock's centre (up, down, sideways and back), so the growth stays round.
+# Directions from both centres are blended by weight so the cleft stays closed.
+SX, SY, SZ = 0.11, 0.12, 0.11   # influence radii (x across, y depth, z height)
 moved = 0
 for v in vs:
     n = v.normal
-    if n.y < 0.05 or v.co.y < centres[0].y - 0.06:
+    if v.co.y < centres[0].y - 0.13:          # leave the front of the body alone
         continue
-    w = 0.0
+    w_tot, dsum = 0.0, Vector((0, 0, 0))
     for c in centres:
         d = v.co - c
-        w = max(w, math.exp(-((d.x / SX) ** 2 + (d.y / SY) ** 2 + (d.z / SZ) ** 2)))
-    if w < 0.01:
+        w = math.exp(-((d.x / SX) ** 2 + (d.y / SY) ** 2 + (d.z / SZ) ** 2))
+        if d.length > 1e-6:
+            dsum += d.normalized() * w
+        w_tot = max(w_tot, w)
+    if w_tot < 0.01 or dsum.length < 1e-6:
         continue
-    facing = min(1.0, n.y * 1.4)              # strongest where the surface faces backwards
-    dirv = (n + Vector((0.3 if v.co.x > 0 else -0.3, 0.8, -0.1))).normalized()
-    sk.data[v.index].co = v.co + dirv * GLUTE_AMP * w * facing
+    radial = dsum.normalized()
+    dirv = (radial * 0.75 + n * 0.25).normalized()
+    # fade out toward the front so the hips/crotch don't balloon
+    front = min(1.0, max(0.0, (v.co.y - (centres[0].y - 0.13)) / 0.1))
+    sk.data[v.index].co = v.co + dirv * GLUTE_AMP * w_tot * front
     moved += 1
 print("glute verts moved", moved)
 if "--glutes" in sys.argv:
-    sk.value = 1.0
-    render_views("glutes_on", views=("side", "back", "q"), color_type='TEXTURE')
-    sk.value = 0.0
-    render_views("glutes_off", views=("side", "back"), color_type='TEXTURE')
+    for val in (0.0, 1.0, 3.0):
+        sk.value = val
+        render_views(f"glutes_{val:.0f}", views=("side", "back", "q"), color_type='TEXTURE')
     sys.exit(0)
 
 # ---------------------------------------------------------------- 6. animations

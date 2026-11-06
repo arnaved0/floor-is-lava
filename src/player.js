@@ -9,8 +9,10 @@ const CROUCH_MARGIN = 0.05;  // crouching never walks further than this past an 
 const GRAVITY = 26;
 const JUMP_V = 9.4;
 const SPEEDS = { crouch: 1.9, run: 5.4, sprint: 8.2, roll: 7.5 };
-export const GLUTE_PER_APPLE = 0.06;  // morph influence per apple (1.0 ≈ 7.5 cm of extra glute)
-export const GLUTE_PER_GOLDEN = 0.2;
+// Morph influence per apple. Influence 1.0 = the glutes inflate 8 cm in every direction.
+export const GLUTE_PER_APPLE = 0.09;
+export const GLUTE_PER_GOLDEN = 0.3;
+export const GLUTE_CM = 8;
 const GLUTE_MAX = 3.0;
 const CLIP_SPEED = { walk: 1.5, run: 4.6, sprint: 7.0, crouchWalk: 1.3 };
 
